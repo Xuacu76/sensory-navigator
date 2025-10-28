@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Athletics Mental Skills Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <!-- Palette: Deep Blue (#0A3D62) and Vibrant Gold/Orange (#FF8C00) -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F0F4F8; /* Light gray-blue background */
+            color: #1F2937;
+        }
+        .quiz-container {
+            max-width: 800px;
+        }
+        .answer-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 2px solid #D1D5DB;
+            min-height: 80px; /* Ensure cards have some minimal height */
+        }
+        .answer-card:hover:not(.selected) {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-color: #0A3D62;
+        }
+        .selected.correct {
+            background-color: #D1FAE5; /* Light Green */
+            border-color: #10B981; /* Green */
+            box-shadow: 0 4px 10px rgba(16, 185, 129, 0.5);
+            pointer-events: none;
+        }
+        .selected.incorrect {
+            background-color: #FEE2E2; /* Light Red */
+            border-color: #EF4444; /* Red */
+            pointer-events: none;
+        }
+        .unselected {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        .feedback-box {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body class="antialiased p-4 md:p-8">
+
+    <div class="quiz-container mx-auto bg-white rounded-xl shadow-2xl p-6 md:p-10">
+        <header class="mb-8 text-center">
+            <h1 class="text-4xl font-extrabold text-[#0A3D62] border-b-4 border-[#FF8C00] pb-2 inline-block">The Sensory Navigator</h1>
+            <p class="text-lg text-gray-600 mt-2">Level up your mental game: Sensory Self-Awareness and Coping</p>
+        </header>
+
+        <div id="quiz-area">
+            <div id="question-counter" class="text-center text-sm font-semibold text-gray-500 mb-4">Question 1 of 12</div>
+            
+            <h2 id="question-text" class="text-2xl font-semibold text-gray-800 mb-6 leading-relaxed"></h2>
+
+            <div id="answer-options" class="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
+                <!-- Answer cards will be injected here -->
+            </div>
+
+            <div id="feedback-section" class="hidden feedback-box p-4 rounded-lg">
+                <h3 id="feedback-title" class="font-bold text-lg mb-2"></h3>
+                <p id="feedback-explanation"></p>
+            </div>
+
+            <div class="text-center mt-8">
+                <button id="next-question-btn" class="hidden px-8 py-3 bg-[#FF8C00] text-white font-bold rounded-lg shadow-lg hover:bg-[#CC7000] transition duration-300 disabled:opacity-50" disabled>
+                    Next Challenge
+                </button>
+                <div id="results" class="hidden text-2xl font-bold text-center mt-6 p-4 bg-gray-100 rounded-lg space-y-4">
+                    <!-- Results content and buttons injected here -->
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const quizData = [
+            {
+                question: "Scenario 1: You arrive at the track for a big event, and the loud music and crowd noise feel immediately overwhelming, spiking your anxiety. What is the best sensory coping strategy?",
+                answers: [
+                    { text: "Try to ignore the noise and force yourself to focus on your stretches.", isCorrect: false, explanation: "Ignoring sensory overload is rarely effective; it drains energy. **Coping** means actively managing the stimulus." },
+                    { text: "Find your coach and ask them to complain about the loud music.", isCorrect: false, explanation: "You can't control the environment. **Self-awareness** means focusing on internal adjustments." },
+                    { text: "Immediately put on your noise-canceling headphones/earplugs and anchor your mind to your breathing routine.", isCorrect: true, explanation: "This uses **sensory coping gear** (headphones) to quickly reduce the external stimulus and anchors your focus to a calming internal routine (breathing)." },
+                    { text: "Pace around the track quickly to burn off the nervous energy caused by the noise.", isCorrect: false, explanation: "Pacing reinforces the anxiety. The goal is to calm the nervous system through sensory control." }
+                ]
+            },
+            {
+                question: "Scenario 2: You put on a brand new, stiff competition uniform, and the rough fabric is constantly itching, causing mental distraction 30 minutes before your event. What do you do?",
+                answers: [
+                    { text: "Focus entirely on the race plan and try to mentally suppress the itching sensation.", isCorrect: false, explanation: "Suppressing a tactile stimulus like itching is highly distracting. **Sensory awareness** accepts the input but actively solves the problem." },
+                    { text: "Change back into an older, comfortable shirt, even if it's non-standard, and tell the coach why.", isCorrect: true, explanation: "The **comfort of gear** is vital for focus. Communicating the necessary change (Self-Advocacy) and prioritizing focus over a minor uniform rule (Coping) is the best choice." },
+                    { text: "Ask a teammate for advice on how to stop the fabric from itching.", isCorrect: false, explanation: "This takes up valuable pre-event time. If you know the item is faulty, replace it." },
+                    { text: "Adjust the fabric repeatedly, trying to fix the sensation with every movement.", isCorrect: false, explanation: "Constant adjustment makes the problem worse by creating a repetitive, distracting focus cue." }
+                ]
+            },
+            {
+                question: "Scenario 3: The sun is low and blindingly bright, making you squint and throw off your sightline during a javelin approach. You don't have sunglasses. What's the best immediate adaptation?",
+                answers: [
+                    { text: "Try to ignore the sun and hope it moves quickly.", isCorrect: false, explanation: "Ignoring a visual stimulus that impacts technique is not smart. **Sensory coping** requires immediate action." },
+                    { text: "Ask an official to temporarily stop the competition so the sun can set further.", isCorrect: false, explanation: "External demands are poor coping strategies. Control what you can: your visual field." },
+                    { text: "Use your hand or the peak of your cap to aggressively shade your eyes and narrow your focus on the throw target.", isCorrect: true, explanation: "This uses an accessible, **immediate physical coping strategy** to manage the bright light and forces your focus back to the target/process." },
+                    { text: "Mentally curse the weather and complain about the timing of the event.", isCorrect: false, explanation: "Complaining reinforces negative emotion and breaks focus." }
+                ]
+            },
+            {
+                question: "Scenario 4: You are running an easy recovery pace when you suddenly notice a lingering smell of strong chemicals (e.g., paint, cleaner) that starts to bother you. What should be your response?",
+                answers: [
+                    { text: "Slow down and try to breathe shallowly through your mouth until the smell disappears.", isCorrect: false, explanation: "Compromising breathing during a run is counterproductive. **Self-advocacy** means changing the environment." },
+                    { text: "Find your coach and explain the sensory issue, requesting to immediately move your run to a different area of the track or grass.", isCorrect: true, explanation: "This is a **functional coping response**. You identify the negative stimulus and proactively adjust the environment to protect your focus and physical well-being." },
+                    { text: "Speed up the run to get past the smell faster.", isCorrect: false, explanation: "Rushing a recovery run breaks the physiological objective of the workout." },
+                    { text: "Accept the smell as a necessary annoyance and try to distract yourself with music.", isCorrect: false, explanation: "Active distraction often fails against strong sensory input. Address the problem directly." }
+                ]
+            },
+            {
+                question: "Scenario 5: You perform well, and a teammate impulsively gives you a hard, loud high-five. The unexpected noise/contact makes you tense up. What is the best way to release that residual sensory tension?",
+                answers: [
+                    { text: "Yell back excitedly to match their energy and release the tension.", isCorrect: false, explanation: "Matching the energy reinforces the emotional spike. **Regulation** means returning to calm." },
+                    { text: "Take one full, deliberate **exhale** while dropping your shoulders, then use a physical cue (like adjusting your watch) to reset.", isCorrect: true, explanation: "This uses a **controlled exhale** and a **physical reset cue** to actively release the sudden tension caused by unexpected sensory input (touch/sound)." },
+                    { text: "Mentally tell yourself to relax, but don't move or breathe differently.", isCorrect: false, explanation: "Telling yourself to relax without a physical action is usually ineffective. **Regulation** requires a physical release." },
+                    { text: "Avoid the teammate for the rest of the practice to prevent future contact.", isCorrect: false, explanation: "This is an avoidance strategy, not a regulation skill. You need to learn how to recover from the unexpected." }
+                ]
+            },
+            {
+                question: "Scenario 6: You are doing a visualization exercise before bed, but you keep noticing a recurring tactile irritation (a rough blanket, a stiff pillow). How do you handle this sensory distraction?",
+                answers: [
+                    { text: "Continue the visualization and try to ignore the tactile sensation for the full 10 minutes.", isCorrect: false, explanation: "Internal noise from sensory distractions compromises visualization. Address the problem first." },
+                    { text: "Identify the irritation, adjust the blanket/pillow for immediate comfort, then immediately anchor back to the visualization cue.", isCorrect: true, explanation: "This is **functional self-awareness**. You recognize the sensory interference and make a quick, autonomous adjustment to protect the quality of your mental task." },
+                    { text: "Get angry at yourself for being so easily distracted.", isCorrect: false, explanation: "Self-criticism fuels negative emotion. **Emotional regulation** means being kind and efficient." },
+                    { text: "Switch on music to drown out the internal focus on the tactile feeling.", isCorrect: false, explanation: "Adding more stimulus (music) might replace one distraction with another, rather than solving the root issue." }
+                ]
+            },
+            {
+                question: "Scenario 7: During a high-intensity drill, the coach's whistle is extremely loud, causing you to flinch or jump every time. What is the best use of a planned sensory break?",
+                answers: [
+                    { text: "Tell the coach you need to stop the drill immediately because the whistle is too loud.", isCorrect: false, explanation: "Stopping the drill compromises the training objective. **Functional communication** should seek a pause, not an end." },
+                    { text: "Ask the coach for a **planned, short break** after the next set, and use that pause to briefly put in earplugs.", isCorrect: true, explanation: "This uses a **planned sensory break** to implement a **coping strategy** (earplugs) without disrupting the flow or intensity of the current set." },
+                    { text: "Mentally prepare yourself to be jarred by the whistle every time it blows.", isCorrect: false, explanation: "Mental preparation doesn't address the physiological flinch response. You need to dampen the sound." },
+                    { text: "Just deal with it until the drill is over, then complain to a teammate.", isCorrect: false, explanation: "Enduring frustration compromises the quality of your performance during the drill." }
+                ]
+            },
+            {
+                question: "Scenario 8: You feel a sharp spike of anxiety when you see a specific competitor in the warm-up area. How do you use spatial awareness as a sensory coping strategy?",
+                answers: [
+                    { text: "Stare intensely at the competitor to show them you are not intimidated.", isCorrect: false, explanation: "Staring increases anxiety and shifts focus externally. **Sensory coping** needs internal focus." },
+                    { text: "Walk to a quiet corner of the warm-up area, turn your back to the hub, and complete your routine facing a fence or wall.", isCorrect: true, explanation: "This is effective **spatial coping**. By manually restricting your visual field, you reduce the sensory trigger (seeing the competitor) and maintain control over your routine." },
+                    { text: "Start your own loud, aggressive warm-up to intimidate them back.", isCorrect: false, explanation: "Aggression wastes energy and is a failure of emotional control." },
+                    { text: "Immediately go to the restroom and hide there until your event is called.", isCorrect: false, explanation: "Hiding is passive avoidance. You need a controlled, proactive adjustment." }
+                ]
+            },
+            {
+                question: "Scenario 9: You are throwing, and you notice your hands are excessively sweaty, changing your tactile feel on the implement. What is the best tactile coping strategy?",
+                answers: [
+                    { text: "Try to ignore the sweat, as wiping your hands wastes time.", isCorrect: false, explanation: "Ignoring tactile changes in the grip compromises safety and execution. Address the sensory input immediately." },
+                    { text: "Take a three-count pause, wipe your hands thoroughly, apply chalk/powder if needed, and firmly regrip to reset the tactile feel.", isCorrect: true, explanation: "This is a **functional, tactile reset**. It uses a controlled pause and a physical action (wiping/chalking) to restore the desired sensory input (dry hands, firm grip) for optimal execution." },
+                    { text: "Blame the humidity and throw with less force to avoid dropping the implement.", isCorrect: false, explanation: "Reducing force compromises performance. The issue is tactile, not strength." },
+                    { text: "Ask the official for a towel and spend several minutes drying your hands slowly.", isCorrect: false, explanation: "Spending several minutes wastes valuable competition time. The reset must be quick and controlled." }
+                ]
+            },
+            {
+                question: "Scenario 10: After a long, hot training session, your body aches. You feel a strong sensory need for a cold shower and immediate rest, but your schedule calls for a 30-minute structured cool-down. How do you regulate your impulse for immediate comfort?",
+                answers: [
+                    { text: "Skip the cool-down completely and go straight home for comfort.", isCorrect: false, explanation: "Quitting the cool-down is poor impulse control, sacrificing recovery for instant comfort. The structured cool-down is non-negotiable." },
+                    { text: "Tell yourself: 'Recovery is part of the work.' Break the cool-down into three 10-minute segments, focusing on one small part at a time.", isCorrect: true, explanation: "This is effective **impulse regulation**. You counter the impulse for immediate comfort with an internal commitment to the *process* and use **chunking** to make the long task feel manageable." },
+                    { text: "Try to rush the cool-down in 5 minutes so you can get home quickly.", isCorrect: false, explanation: "Rushing sacrifices the quality and purpose of the cool-down." },
+                    { text: "Ask the coach for permission to shorten the cool-down because you worked so hard.", isCorrect: false, explanation: "This relies on external permission to abandon your routine, showing poor autonomy." }
+                ]
+            },
+            {
+                question: "Scenario 11: You feel a wave of lightheadedness (a physiological sensory cue) during the middle of a hard interval. What is the most controlled, functional response?",
+                answers: [
+                    { text: "Immediately stop the interval and sit down to wait for the lightheadedness to pass.", isCorrect: false, explanation: "Stopping immediately is impulsive. You need to assess the seriousness first." },
+                    { text: "Slow your pace, focus on a deep 4-count nasal inhale, and finish the rep at a lower intensity.", isCorrect: true, explanation: "This is the ideal **self-regulation** response. You adjust the intensity (flexibility) and use **controlled breathing** to address the physiological sensory cue, maintaining the integrity of the workout." },
+                    { text: "Speed up to finish the rep faster before you pass out.", isCorrect: false, explanation: "Rushing while lightheaded is dangerous and poor impulse control." },
+                    { text: "Yell to a teammate that you need sugar immediately.", isCorrect: false, explanation: "This creates panic and assumes a quick fix is available; focus on your breathing first." }
+                ]
+            },
+            {
+                question: "Scenario 12: You are about to start a competition, and you realize you forgot to listen to your specific warm-up song, which is usually your final mental anchor. What is the best sensory substitution?",
+                answers: [
+                    { text: "Don't worry about it, and just assume the rest of your preparation was enough.", isCorrect: false, explanation: "Ignoring a key routine element is risky. You need a replacement anchor." },
+                    { text: "Use the time to listen to any loud, fast song on your phone to get motivated.", isCorrect: false, explanation: "Any loud song doesn't provide the familiar anchor. **Sensory anchors** must be specific and calming." },
+                    { text: "Perform a 3-minute segment of your routine (like shoulder rolls) while silently humming the tune of your warm-up song in your head.", isCorrect: true, explanation: "This is a perfect **sensory substitution**. You replace the external auditory anchor with an internal version, linking it to a physical action to maintain the flow of your routine." },
+                    { text: "Immediately find a different, quiet place to re-do your entire warm-up from scratch.", isCorrect: false, explanation: "Re-doing the entire warm-up causes panic and breaks the overall competition schedule." }
+                ]
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let quizCompleted = false;
+        let sessionAttempts = []; // New array to store detailed attempt results
+
+        const questionText = document.getElementById('question-text');
+        const answerOptions = document.getElementById('answer-options');
+        const nextQuestionBtn = document.getElementById('next-question-btn');
+        const feedbackSection = document.getElementById('feedback-section');
+        const feedbackTitle = document.getElementById('feedback-title');
+        const feedbackExplanation = document.getElementById('feedback-explanation');
+        const questionCounter = document.getElementById('question-counter');
+        const resultsDiv = document.getElementById('results');
+
+        // --- UTF-8 Safe Encoding/Decoding for btoa/atob ---
+        // Encodes a Unicode string into a Base64 string that can be safely placed in HTML attributes.
+        const b64EncodeUnicode = (str) => btoa(
+            encodeURIComponent(str).replace(/%([0-9A-F]{2})/g,
+                (match, p1) => String.fromCharCode('0x' + p1)
+            )
+        );
+
+        // Decodes a Base64 string back into a Unicode string.
+        const b64DecodeUnicode = (str) => decodeURIComponent(
+            atob(str).split('').map((c) => {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join('')
+        );
+        // --- End UTF-8 Safe Encoding/Decoding ---
+
+
+        // Fisher-Yates shuffle algorithm
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function renderQuestion() {
+            if (currentQuestionIndex >= quizData.length) {
+                showResults();
+                return;
+            }
+
+            const currentQuestion = quizData[currentQuestionIndex];
+            
+            // Shuffle the answers before rendering them
+            shuffleArray(currentQuestion.answers);
+            
+            // Reset interface elements that may have been hidden by showResults or reset
+            answerOptions.innerHTML = '';
+            feedbackSection.classList.add('hidden');
+            nextQuestionBtn.classList.add('hidden');
+            nextQuestionBtn.disabled = true;
+            resultsDiv.classList.add('hidden');
+
+            questionText.classList.remove('hidden');
+            answerOptions.classList.remove('hidden');
+            questionCounter.classList.remove('hidden');
+
+            // Update question and counter
+            questionText.textContent = currentQuestion.question;
+            questionCounter.textContent = `Question ${currentQuestionIndex + 1} of ${quizData.length}`;
+
+            // Render answers
+            currentQuestion.answers.forEach((answer, index) => {
+                const card = document.createElement('div');
+                card.classList.add('answer-card', 'p-4', 'rounded-lg', 'bg-white', 'shadow-md', 'flex', 'items-center', 'text-base', 'font-medium');
+                card.dataset.index = index;
+                // Use letters A, B, C, D for the four options
+                card.innerHTML = `<span class="mr-3 font-bold text-[#FF8C00]">${String.fromCharCode(65 + index)}.</span> ${answer.text}`;
+                card.addEventListener('click', () => checkAnswer(card, answer));
+                answerOptions.appendChild(card);
+            });
+        }
+
+        function checkAnswer(selectedCard, selectedAnswer) {
+            if (quizCompleted) return;
+
+            const allAnswerCards = answerOptions.querySelectorAll('.answer-card');
+            
+            // Disable all cards and dim unselected ones
+            allAnswerCards.forEach(card => {
+                card.classList.add('unselected');
+                card.removeEventListener('click', checkAnswer);
+            });
+            
+            selectedCard.classList.remove('unselected');
+            selectedCard.classList.add('selected');
+
+            // Find the correct answer object for logging, regardless of user choice
+            const currentQuestionData = quizData[currentQuestionIndex];
+            const correctAnswerObject = currentQuestionData.answers.find(a => a.isCorrect);
+
+            // Store attempt data
+            const attemptData = {
+                question: currentQuestionData.question,
+                selectedText: selectedAnswer.text,
+                isCorrect: selectedAnswer.isCorrect,
+                correctAnswerText: correctAnswerObject.text,
+                correctExplanation: correctAnswerObject.explanation
+            };
+            sessionAttempts.push(attemptData);
+
+
+            // Set feedback based on correctness
+            if (selectedAnswer.isCorrect) {
+                score++;
+                selectedCard.classList.add('correct');
+                feedbackTitle.textContent = "Awesome choice! That's the mindset of a champion.";
+                feedbackTitle.classList.remove('text-red-700');
+                feedbackTitle.classList.add('text-green-700');
+                feedbackSection.classList.remove('bg-red-100');
+                feedbackSection.classList.add('bg-green-100');
+            } else {
+                selectedCard.classList.add('incorrect');
+                feedbackTitle.textContent = "Good try, but let's sharpen that focus.";
+                feedbackTitle.classList.remove('text-green-700');
+                feedbackTitle.classList.add('text-red-700');
+                feedbackSection.classList.remove('bg-green-100');
+                feedbackSection.classList.add('bg-red-100');
+                
+                // Highlight the correct answer
+                const correctCard = Array.from(allAnswerCards).find(card => {
+                    // Find the card whose content includes the correct answer text
+                    return card.textContent.includes(correctAnswerObject.text);
+                });
+                
+                if (correctCard) {
+                    correctCard.classList.remove('unselected');
+                    correctCard.classList.add('selected', 'correct');
+                }
+            }
+
+            feedbackExplanation.textContent = selectedAnswer.explanation;
+            feedbackSection.classList.remove('hidden');
+            
+            // Update the text for the next button if it's the last question
+            if (currentQuestionIndex === quizData.length - 1) {
+                nextQuestionBtn.textContent = "See Results";
+            } else {
+                nextQuestionBtn.textContent = "Next Challenge";
+            }
+
+            nextQuestionBtn.classList.remove('hidden');
+            nextQuestionBtn.disabled = false;
+        }
+
+        function getResultMessage(score, totalQuestions) {
+            if (score === totalQuestions) {
+                return {
+                    title: `PERFECT SCORE! 🥇 ${score}/${totalQuestions}`,
+                    text: `You are a Sensory Master! Your **Self-Awareness** and **Coping Strategies** are elite. You successfully manage external stimuli to keep your focus internal and controlled.`,
+                    color: 'text-green-700'
+                };
+            } else if (score >= totalQuestions * 0.75) {
+                return {
+                    title: `GREAT JOB! 🎉 ${score}/${totalQuestions}`,
+                    text: `Excellent understanding of **Sensory Navigation**. You recognize key triggers and know how to use tools like breathing and movement to anchor your focus. Keep identifying those subtle distractions!`,
+                    color: 'text-blue-700'
+                };
+            } else {
+                return {
+                    title: `GOOD EFFORT! 👍 ${score}/${totalQuestions}`,
+                    text: `This quiz shows a great opportunity to improve your **Sensory Coping**. Focus on recognizing when external stimuli (noise, light, touch) are draining your energy, and actively use physical resets or protective gear to maintain your 'bubble.'`,
+                    color: 'text-orange-700'
+                };
+            }
+        }
+
+        function showResults() {
+            quizCompleted = true;
+            questionText.classList.add('hidden');
+            answerOptions.classList.add('hidden');
+            feedbackSection.classList.add('hidden');
+            nextQuestionBtn.classList.add('hidden');
+            questionCounter.classList.add('hidden');
+            
+            const totalQuestions = quizData.length;
+            const result = getResultMessage(score, totalQuestions);
+
+            // --- Start Detailed Summary Generation ---
+            let detailedSummaryHTML = '';
+            let detailedSummaryText = ''; // For the copy function
+
+            sessionAttempts.forEach((attempt, index) => {
+                const statusIcon = attempt.isCorrect ? '✅' : '❌';
+                const statusColor = attempt.isCorrect ? 'text-green-600' : 'text-red-600';
+                const questionLetter = String.fromCharCode(65 + index);
+
+                detailedSummaryHTML += `
+                    <div class="border-t border-gray-300 pt-4 mt-4 text-left">
+                        <p class="text-lg font-bold ${statusColor}">${statusIcon} Question ${index + 1}: ${attempt.question}</p>
+                        <p class="mt-1 text-sm text-gray-700"><span class="font-semibold">Your Choice:</span> ${attempt.selectedText}</p>
+                        <p class="mt-1 text-sm ${statusColor} font-semibold"><span class="text-gray-900">Correct Answer:</span> ${attempt.correctAnswerText}</p>
+                        <p class="mt-2 text-sm text-gray-700">***Explanation: ${attempt.correctExplanation}</p>
+                    </div>
+                `;
+                
+                detailedSummaryText += `
+--- Question ${index + 1} ---
+Q: ${attempt.question}
+Your Choice (${statusIcon}): ${attempt.selectedText}
+Correct Answer: ${attempt.correctAnswerText}
+Explanation: ${attempt.correctExplanation}
+`;
+            });
+            // --- End Detailed Summary Generation ---
+
+            const resultsHTML = `
+                <div class="${result.color} text-4xl font-extrabold mb-2">${result.title}</div>
+                <div class="text-xl font-medium text-gray-800 mb-6">${result.text}</div>
+                
+                <div id="detailed-results-container" class="max-h-96 overflow-y-auto p-4 border rounded-lg bg-white shadow-inner">
+                    <h4 class="text-xl font-bold text-[#0A3D62] mb-3 border-b pb-2">Full Test Review</h4>
+                    ${detailedSummaryHTML}
+                </div>
+
+                <div class="space-x-4 pt-4">
+                    <button id="copy-results-btn" class="px-6 py-3 bg-[#0A3D62] text-white font-bold rounded-lg shadow-md hover:bg-[#082C4A] transition duration-300" data-summary="${b64EncodeUnicode(detailedSummaryText)}">
+                        Copy Results
+                    </button>
+                    <button id="reset-test-btn" class="px-6 py-3 border-2 border-[#FF8C00] text-[#FF8C00] font-bold rounded-lg shadow-md hover:bg-yellow-50 transition duration-300">
+                        Reset Test
+                    </button>
+                </div>
+            `;
+
+            resultsDiv.innerHTML = resultsHTML;
+            resultsDiv.classList.remove('hidden');
+
+            document.getElementById('copy-results-btn').addEventListener('click', copyResults);
+            document.getElementById('reset-test-btn').addEventListener('click', resetQuiz);
+        }
+
+        function copyResults() {
+            const totalQuestions = quizData.length;
+            const result = getResultMessage(score, totalQuestions);
+            // Decode the detailed summary text using the new safe function
+            const detailedSummaryText = b64DecodeUnicode(document.getElementById('copy-results-btn').dataset.summary); 
+
+            const copyText = `
+--- Athletics Mental Skills Quiz Results ---
+Athlete: [Client Name, Date]
+Score: ${score} out of ${totalQuestions}
+Summary: ${result.title.split(' ')[0]}!
+Mental State Feedback: ${result.text}
+
+==================================================
+        
+FULL QUESTION-BY-QUESTION REVIEW
+${detailedSummaryText}
+--- End of Test ---
+`;
+            // Use document.execCommand('copy') for better compatibility in iFrames
+            const tempTextArea = document.createElement('textarea');
+            tempTextArea.value = copyText;
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempTextArea);
+            
+            // Provide visual confirmation (non-alert version)
+            const copyBtn = document.getElementById('copy-results-btn');
+            const originalText = copyBtn.textContent;
+            copyBtn.textContent = 'Copied!';
+            setTimeout(() => { copyBtn.textContent = originalText; }, 1500);
+        }
+
+        function resetQuiz() {
+            currentQuestionIndex = 0;
+            score = 0;
+            quizCompleted = false;
+            sessionAttempts = []; // Critical: Clear the stored attempts
+            
+            // Re-show main quiz containers and hide results
+            questionText.classList.remove('hidden');
+            answerOptions.classList.remove('hidden');
+            questionCounter.classList.remove('hidden');
+            resultsDiv.classList.add('hidden');
+            
+            renderQuestion();
+        }
+
+        // Event listener for Next button
+        nextQuestionBtn.addEventListener('click', () => {
+            currentQuestionIndex++;
+            renderQuestion();
+        });
+
+        // Initialize quiz
+        document.addEventListener('DOMContentLoaded', renderQuestion);
+    </script>
+
+</body>
+</html>
